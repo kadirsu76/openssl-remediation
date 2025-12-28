@@ -14,7 +14,10 @@
 # ==========================================
 # CONFIGURATION
 # ==========================================
-$BaseUrl = "YOUR_GIT_RAW_URL" # e.g., https://raw.githubusercontent.com/user/repo/main\n$CsvName = "export-tvm-recommendation-related-exposed-paths.csv"\n$CryptoName = "libcrypto-3-x64.dll"\n$SslName = "libssl-3-x64.dll" 
+$BaseUrl = "https://raw.githubusercontent.com/kadirsu76/openssl-remediation/main"
+$CsvName = "export-tvm-recommendation-related-exposed-paths.csv"
+$CryptoName = "libcrypto-3-x64.dll"
+$SslName = "libssl-3-x64.dll" 
 
 $RegistryPath = "HKLM:\SOFTWARE\OpenSSLRemediation"
 $TempDir = "$env:TEMP\OpenSSLRemediation"
