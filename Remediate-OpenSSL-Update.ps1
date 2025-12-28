@@ -156,16 +156,23 @@ New-ItemProperty -Path $RegistryPath -Name "LastRun" -Value (Get-Date).ToString(
 Write-Host "[INFO] Cleaning up Temp Directory..."
 Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue
 
+# Prepare Output Message
+$finalOutput = ""
+if ($countFailed -gt 0) {
+    $failMsg = "FAILED: $countFailed (Paths: " + ($failedPaths -join ", ") + ")"
+    $finalOutput = "TOTAL: $countForUpdate | SUCCESS: $countSuccess | $failMsg"
+}
+else {
+    $finalOutput = "COMPLIANT | TOTAL: $countForUpdate | ALL SUCCESSFUL"
+}
+
+# Log to Transcript
+Write-Host "[RESULT] $finalOutput"
+
 Write-Host "[INFO] Process Completed."
 Stop-Transcript
 
-# SINGLE LINE OUTPUT to Intune
-if ($countFailed -gt 0) {
-    $failMsg = "FAILED: $countFailed (Paths: " + ($failedPaths -join ", ") + ")"
-    Write-Output "TOTAL: $countForUpdate | SUCCESS: $countSuccess | $failMsg"
-}
-else {
-    Write-Output "COMPLIANT | TOTAL: $countForUpdate | ALL SUCCESSFUL"
-}
+# SINGLE LINE OUTPUT to Intune (Standard Output)
+Write-Output $finalOutput
 
 exit 0
