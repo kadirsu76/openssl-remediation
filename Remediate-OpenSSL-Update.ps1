@@ -55,38 +55,34 @@ Write-Host "[INFO] Cleaning/Creating Temp Directory: $TempDir"
 if (Test-Path $TempDir) { Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue }
 New-Item -Path $TempDir -ItemType Directory -Force | Out-Null
 
-# 2. Download ZIP
-$ZipPath = "$TempDir\assets.zip"
-if (-not (Download-File -Url $ZipUrl -Dest $ZipPath)) {
-    Write-Output "CRITICAL ERROR: Failed to download ZIP file. Check Log: $LogFile"
+# 2. Download Assets
+$CsvPath = "$TempDir\$CsvName"
+$CryptoPath = "$TempDir\$CryptoName"
+$SslPath = "$TempDir\$SslName"
+
+$downloadErrors = 0
+
+if (-not (Download-File -Url "$BaseUrl/$CsvName" -Dest $CsvPath)) { $downloadErrors++ }
+if (-not (Download-File -Url "$BaseUrl/$CryptoName" -Dest $CryptoPath)) { $downloadErrors++ }
+if (-not (Download-File -Url "$BaseUrl/$SslName" -Dest $SslPath)) { $downloadErrors++ }
+
+if ($downloadErrors -gt 0) {
+    Write-Output "CRITICAL ERROR: Failed to download one or more assets. Check Log: $LogFile"
     Stop-Transcript
     exit 1
 }
 
-# 3. Extract ZIP
-try {
-    Write-Host "[INFO] Extracting ZIP..."
-    Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force -ErrorAction Stop
-}
-catch {
-    Write-Output "CRITICAL ERROR: Failed to extract ZIP. Check Log: $LogFile"
+# 3. Verify Files exist (Redundant check but good for safety)
+if (-not (Test-Path $CsvPath) -or -not (Test-Path $CryptoPath) -or -not (Test-Path $SslPath)) {
+    Write-Output "CRITICAL ERROR: Missing files in Temp. Check Log: $LogFile"
     Stop-Transcript
     exit 1
 }
 
-# 4. Identify Files
-# We expect these files to be inside the zip (or inside a subfolder in the zip)
-# Let's find them recursively to be safe
-$CsvFile = Get-ChildItem -Path $TempDir -Filter "*.csv" -Recurse | Select-Object -First 1
-$CryptoFile = Get-ChildItem -Path $TempDir -Filter "libcrypto-3-x64.dll" -Recurse | Select-Object -First 1
-$SslFile = Get-ChildItem -Path $TempDir -Filter "libssl-3-x64.dll" -Recurse | Select-Object -First 1
-
-if (-not $CsvFile -or -not $CryptoFile -or -not $SslFile) {
-    Write-Output "CRITICAL ERROR: Missing files in ZIP. Check Log: $LogFile"
-    Write-Error "Files found in temp: $(Get-ChildItem $TempDir -Recurse | Select-Object -ExpandProperty Name)"
-    Stop-Transcript
-    exit 1
-}
+# Map to variables expected by processing logic
+$CsvFile = Get-Item $CsvPath
+$CryptoFile = Get-Item $CryptoPath
+$SslFile = Get-Item $SslPath
 
 # 4. Process Replacements
 try {
