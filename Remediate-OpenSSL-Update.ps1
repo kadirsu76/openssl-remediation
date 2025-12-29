@@ -20,8 +20,7 @@ $CryptoName = "libcrypto-3-x64.dll"
 $SslName = "libssl-3-x64.dll"
 $Crypto3Name = "libcrypto-3.dll"
 $Ssl3Name = "libssl-3.dll"
-$CryptoZmName = "libcrypto-3-zm.dll"
-$SslZmName = "libssl-3-zm.dll" 
+$CryptoZmName = "libcrypto-3-zm.dll" 
 
 $RegistryPath = "HKLM:\SOFTWARE\OpenSSLRemediation"
 $TempDir = "$env:TEMP\OpenSSLRemediation"
@@ -69,7 +68,6 @@ $SslPath = "$TempDir\$SslName"
 $Crypto3Path = "$TempDir\$Crypto3Name"
 $Ssl3Path = "$TempDir\$Ssl3Name"
 $CryptoZmPath = "$TempDir\$CryptoZmName"
-$SslZmPath = "$TempDir\$SslZmName"
 
 $downloadErrors = 0
 
@@ -79,7 +77,6 @@ if (-not (Download-File -Url "$BaseUrl/$SslName" -Dest $SslPath)) { $downloadErr
 if (-not (Download-File -Url "$BaseUrl/$Crypto3Name" -Dest $Crypto3Path)) { $downloadErrors++ }
 if (-not (Download-File -Url "$BaseUrl/$Ssl3Name" -Dest $Ssl3Path)) { $downloadErrors++ }
 if (-not (Download-File -Url "$BaseUrl/$CryptoZmName" -Dest $CryptoZmPath)) { $downloadErrors++ }
-if (-not (Download-File -Url "$BaseUrl/$SslZmName" -Dest $SslZmPath)) { $downloadErrors++ }
 
 if ($downloadErrors -gt 0) {
     Write-Output "CRITICAL ERROR: Failed to download one or more assets. Check Log: $LogFile"
@@ -88,7 +85,7 @@ if ($downloadErrors -gt 0) {
 }
 
 # 3. Verify Files exist (Redundant check but good for safety)
-if (-not (Test-Path $CsvPath) -or -not (Test-Path $CryptoPath) -or -not (Test-Path $SslPath) -or -not (Test-Path $Crypto3Path) -or -not (Test-Path $Ssl3Path) -or -not (Test-Path $CryptoZmPath) -or -not (Test-Path $SslZmPath)) {
+if (-not (Test-Path $CsvPath) -or -not (Test-Path $CryptoPath) -or -not (Test-Path $SslPath) -or -not (Test-Path $Crypto3Path) -or -not (Test-Path $Ssl3Path) -or -not (Test-Path $CryptoZmPath)) {
     Write-Output "CRITICAL ERROR: Missing files in Temp. Check Log: $LogFile"
     Stop-Transcript
     exit 1
@@ -101,7 +98,6 @@ $SslFile = Get-Item $SslPath
 $Crypto3File = Get-Item $Crypto3Path
 $Ssl3File = Get-Item $Ssl3Path
 $CryptoZmFile = Get-Item $CryptoZmPath
-$SslZmFile = Get-Item $SslZmPath
 
 # 4. Process Replacements
 try {
@@ -126,7 +122,7 @@ foreach ($row in $csvData) {
     $fileName = Split-Path $targetPath -Leaf
 
     # Only process target DLLs
-    $validFiles = @("libcrypto-3-x64.dll", "libssl-3-x64.dll", "libcrypto-3.dll", "libssl-3.dll", "libcrypto-3-zm.dll", "libssl-3-zm.dll")
+    $validFiles = @("libcrypto-3-x64.dll", "libssl-3-x64.dll", "libcrypto-3.dll", "libssl-3.dll", "libcrypto-3-zm.dll")
     if ($validFiles -notcontains $fileName) { continue }
 
     # If file doesn't exist, skip
@@ -142,7 +138,6 @@ foreach ($row in $csvData) {
         "libcrypto-3.dll" { $replacementSource = $Crypto3File.FullName }
         "libssl-3.dll" { $replacementSource = $Ssl3File.FullName }
         "libcrypto-3-zm.dll" { $replacementSource = $CryptoZmFile.FullName }
-        "libssl-3-zm.dll" { $replacementSource = $SslZmFile.FullName }
     }
 
     Write-Host "[INFO] Updating: $targetPath"
